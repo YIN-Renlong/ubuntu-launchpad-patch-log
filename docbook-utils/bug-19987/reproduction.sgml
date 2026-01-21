@@ -1,0 +1,13 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V3.1//EN">
+<refentry>
+  <refnamediv>
+    <refname>checkme</refname>
+    <refpurpose>Verification of hyphen encoding</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>checkme</command>
+      <arg choice="plain"><option>--robust-check</option></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+</refentry>
