@@ -2,7 +2,7 @@
 
 This repository serves as a centralized archive of engineering reports, patch files, and independent verification logs for bugs submitted to the [Ubuntu Launchpad](https://launchpad.net/ubuntu) tracking system.
 
-The primary goal is to provide **reproducible proof** for every submitted patch, ensuring that fixes are rigorously tested in clean, isolated environments before upstream submission.
+The primary goal is to provide **reproducible proof** for every submitted patch, ensuring that fixes are tested in clean and isolated environments before upstream submission.
 
 ## Repository Structure
 
