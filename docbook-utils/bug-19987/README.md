@@ -434,8 +434,27 @@ grep "robust" CHECKME.1 | od -t x1c
 * Byte 021-022: `5c 2d` -> `\-` (Escaped Minus)
 * Byte 023-024: `5c 2d` -> `\-` (Escaped Minus)
 
-### 5. Visual Typographic Verification
-I generated a PostScript (`.ps`) file from the man page using `groff -man -Tps`. Inspection in macOS Preview confirmed that the glyphs rendered are true Minus Signs (longer stroke, distinct from hyphens), confirming the fix propagates correctly through the typesetting engine to the printer driver.
+### 5. Visual Regression Test (Side-by-Side Comparison)
+I generated a PostScript file (`comparison.ps`) and converted it to PDF to visually verify the glyph rendering logic in the typesetting engine (`groff`). I manually injected a "Broken" line to demonstrate the difference.
+
+**PostScript Source Analysis (Snippet):**
+```ps
+% Line 1: Patched (Uses \255 for Minus)
+(1. P)108 165.6 Q (ATCHED...): E
+(checkme \255\255rob)108 177.6 Q (ust\255check) E 
+
+% Line 2: Broken (Uses standard Hyphens)
+(2. BR)108 194.4 Q (OKEN...): E
+(checkme --rob)108 206.4 Q (ust-check) E
+```
+*Note: `\255` is the Octal code for the Semantic Minus Sign in Groff's Times-Bold encoding.*
+
+**Visual Result (Screenshot):**
+![Visual Verification of Fix](img/comparison.png)
+
+**Conclusion:**
+*   **Patched Line:** Renders as `−−robust−check`. The glyphs are wide and distinct (U+2212).
+*   **Broken Line:** Renders as `--robust-check`. The glyphs are short and stubby (U+002D).
 
 ---
 ### Final Verdict
