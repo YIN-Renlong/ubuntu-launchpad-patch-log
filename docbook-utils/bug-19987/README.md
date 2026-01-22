@@ -1,4 +1,4 @@
-# Report: docbook-utils Hyphen Encoding Fix
+# Report: docbook-utils Hyphen Encoding Patch & Verification
 
 **Bug ID:** [Ubuntu Launchpad #19987](https://bugs.launchpad.net/ubuntu/+source/docbook-utils/+bug/19987)
 **Upstream ID:** [Debian Bug #208967](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=208967)
@@ -8,8 +8,10 @@
 
 ---
 
+# Phase 1: Primary Verification & Root Cause Analysis
+
 ## 1. Test Environment
-Verification was performed in a clean GitHub Codespace environment.
+Verification was performed in a pristine GitHub Codespace environment to establish a baseline.
 
 ```text
 Distributor ID: Ubuntu
@@ -20,14 +22,14 @@ Kernel:         Linux 6.8.0-1030-azure x86_64
 ```
 
 ## 2. Problem Description
-The `docbook2man` utility converts DocBook SGML `<option>` tags into man pages.
-*   **Defect:** It rendered options as plain hyphens (`-`) instead of roff-escaped minus signs (`\-`).
-*   **Impact:** Command line options copied from man pages fail in terminals; triggers Lintian tag `hyphen-used-as-minus-sign`.
+The `docbook2man` utility converts DocBook SGML `<option>` tags into man pages using an incorrect glyph.
+*   **Defect:** It renders options as plain hyphens (`-`) instead of roff-escaped minus signs (`\-`).
+*   **Impact:** Command line options copied from man pages fail in terminals; this triggers the Lintian tag `hyphen-used-as-minus-sign`.
 
 ---
 
-## 3. The Solution (Patch)
-I modified the Perl helper script `helpers/docbook2man-spec.pl` to capture the content of the `<OPTION>` tag and apply a Regex substitution.
+## 3. Patch Implementation
+The fix modifies the `SGMLSpm` specification file (`helpers/docbook2man-spec.pl`). We intercept the `<OPTION>` element stream, capture the buffer, and apply a regex substitution to enforce proper escaping.
 
 **File: `fix.patch` (Content applied):**
 ```perl
@@ -48,10 +50,10 @@ sgml('</OPTION>', sub {
 
 ## 4. Verification Protocol
 
-The following files are included in this repository to allow independent reproduction of the fix.
+The following artifacts allow for independent reproduction of the fix.
 
 ### A. Input Data (`reproduction.sgml`)
-A standard DocBook RefEntry was created containing the string `--robust-check`.
+A minimal DocBook RefEntry was created containing the string `--robust-check` to isolate the conversion logic.
 
 **File Content:**
 ```sgml
@@ -71,7 +73,7 @@ A standard DocBook RefEntry was created containing the string `--robust-check`.
 ```
 
 ### B. Automated Python Verification
-A Python script was written to bypass shell escaping ambiguity and verify the string literal.
+To verify the fix without ambiguity regarding shell string escaping/expansion, a Python script was utilized to inspect the raw file content.
 
 **File Content (`verify_fix.py`):**
 ```python
@@ -99,7 +101,7 @@ PASS: Found escaped hyphens in REAL_TEST.1
 ```
 
 ### C. Binary Verification (Hex Dump)
-To ensure no hidden characters or encoding issues, an octal dump was analyzed on the generated artifact `REAL_TEST.1`.
+To validate the file integrity at the byte level, an octal dump was analyzed on the generated artifact `REAL_TEST.1`.
 *   Target string: `\-` (Backslash then Hyphen).
 *   Hex values: `5c` (Backslash), `2d` (Hyphen).
 
@@ -115,6 +117,8 @@ grep "checkme" REAL_TEST.1 | od -t x1c
 ```
 **Conclusion:** The sequence `5c 2d` appears three times, corresponding to the two leading dashes and the internal hyphen in `robust\-check`. The fix is binary exact.
 
+---
+
 # Phase 2: Independent Cross-Verification Report
 
 **Verification Target:** `docbook-utils` Hyphen Encoding Fix
@@ -126,7 +130,7 @@ grep "checkme" REAL_TEST.1 | od -t x1c
 
 ## 1. Test Environment
 
-To ensure the fix is not specific to the author's environment (Azure/GitHub Codespaces), a completely separate verification instance was provisioned on Oracle Cloud.
+To ensure the fix is architecture-agnostic and not specific to the author's local environment, a secondary validation instance was provisioned on Oracle Cloud.
 
 * **OS:** Ubuntu 24.04.2 LTS
 * **Kernel:** Linux 6.8.0-1022-oracle x86_64
@@ -136,10 +140,10 @@ To ensure the fix is not specific to the author's environment (Azure/GitHub Code
 
 ## 2. Reproduction Steps (Raw Commands)
 
-The following commands were executed to replicate the bug and verify the fix. These steps use a manual logic injection to bypass potential `patch` command path mismatches.
+The following commands replicate the bug and verify the fix. Note: We utilize direct stream editing (sed/cat) rather than `patch` to ensure application robustness against minor upstream version drift.
 
 ### A. Setup and Baseline Failure
-First, we establish the test environment and confirm the bug exists.
+Establishing the test environment and confirming the defect.
 
 ```bash
 # 1. Install prerequisites
@@ -171,8 +175,8 @@ cp /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl local-spec.pl
 onsgmls reproduction.sgml | sgmlspl ./local-spec.pl > REAL_TEST.1
 ```
 
-### B. Applying the Fix (Manual Logic Injection)
-We manually modify the Perl script to inject the fix logic. This ensures the code is correct even if the `.patch` file fails due to version differences.
+### B. Patch Application (Direct Modification)
+We manually modify the Perl script to inject the fixed logic. This prevents potential patch fuzz/offset errors.
 
 ```bash
 # 1. Disable the existing (buggy) OPTION handler
@@ -209,7 +213,7 @@ onsgmls reproduction.sgml | sgmlspl ./local-spec.pl > REAL_TEST.1
 We utilized three distinct methods to verify the fix.
 
 ### Method 1: Source Logic Check (Python)
-We verified that the literal escape sequence `\-` exists in the file.
+Verifying the literal escape sequence `\-` exists in the file.
 
 **Code:**
 ```python
@@ -239,7 +243,7 @@ PASS: Found escaped hyphens in REAL_TEST.1
 ```
 
 ### Method 2: Binary Integrity Check (Hex Dump)
-We inspected the binary octal dump to ensure the sequence is `5c 2d` (Backslash `\` + Hyphen `-`) rather than just `2d`.
+Inspecting the binary octal dump to ensure the sequence is `5c 2d` (Backslash `\` + Hyphen `-`) rather than just `2d`.
 
 **Command:**
 ```bash
@@ -272,28 +276,24 @@ C\-
 
 ---
 
-## 4. Conclusion
-
-The patch has been independently verified on a separate kernel and cloud architecture. The analysis of the `groff` intermediate output confirms that the patch successfully forces the typesetting engine to switch from a "Text Hyphen" context to a "Semantic Minus" context. The fix is robust, binary-exact, and reproducible.
-
-# Phase 3: Local ARM64 Cross-Verification & Release Engineering Audit
+# Phase 3: Local ARM64 Verification & Packaging Audit
 
 **Date:** 2026-01-22
 **Status:** **PASSED**
 **Operator:** YIN Renlong
 
-To ensure absolute rigor, a third phase of verification was conducted locally on Apple Silicon (ARM64) hardware. This phase moved beyond simple script patching and simulated the full **Debian Package Maintainer workflow**, ensuring the fix survives the build compilation process and satisfies strict linting standards.
+To ensure absolute rigor, a third phase of verification was conducted locally on Apple Silicon (ARM64) hardware. This phase simulated the full **Debian Package Maintainer workflow**, ensuring the fix survives the build compilation process and satisfies strict linting standards.
 
 ### 1. Test Environment
-All tests were executed within an ephemeral Docker container to guarantee zero environmental contamination. The workload ran natively on ARM64 architecture without emulation.
+Tests were executed within a clean Docker container to guarantee zero environmental contamination. The workload ran natively on ARM64 architecture without emulation.
 
 * **Host Hardware:** MacBook Pro M1 Pro (Apple Silicon)
 * **Container Engine:** Docker Desktop 4.32.1 (Engine: 27.0.3)
 * **Target OS:** Ubuntu 24.04 LTS (Noble Numbat) `arm64`
 * **Mirror:** Friedrich-Alexander-Universität (FAU) `ubuntu-ports` mirror (High-bandwidth verification).
 
-### 2. Methodology A: System-Level Forensic Patching (Reverse Generation)
-To eliminate potential whitespace corruption or encoding issues inherent in copy-pasting patch files, I utilized a **Reverse Patch Generation** strategy. Instead of applying an external file, I programmatically modified the system Perl script using regex, generated a system-native diff, reverted the file, and then validated that the generated patch applied cleanly.
+### 2. Methodology A: Reverse Patch Generation
+To eliminate potential encoding issues inherent in copy-pasting patch files, I utilized a **Reverse Patch Generation** strategy. I programmatically modified the system Perl script using regex, generated a system-native diff, reverted the file, and then validated that the generated patch applied cleanly.
 
 **Log Artifacts:**
 
@@ -304,8 +304,8 @@ root@eda402a24f38:/work# apt-get install --reinstall -y docbook-utils
 root@eda402a24f38:/work# cp /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl.orig
 ```
 
-**Logic Injection & Patch Generation:**
-I injected the logic directly into the AST handler and generated a unified diff.
+**In-Place Modification & Patch Generation:**
+I injected the logic directly into the AST handler via Perl one-liner and generated a unified diff.
 ```bash
 root@eda402a24f38:/work# perl -i -0777 -pe 's/sgml\(\x27<OPTION>\x27, \\&bold_on\);\nsgml\(\x27<\/OPTION>\x27, \\&font_off\);/sgml\(\x27<OPTION>\x27, sub {\n\t&bold_on;\n\tpush_output(\x27string\x27);\n});\nsgml\(\x27<\/OPTION>\x27, sub {\n\tmy \$content = pop_output();\n\t\$content =~ s\/-\/\\\\-\/g;\n\toutput \$content;\n\t&font_off;\n});/s' /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl
 root@eda402a24f38:/work# diff -u /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl.orig /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl > fix.patch
@@ -334,7 +334,7 @@ The system-generated patch matches the upstream submission logic exactly.
 +});
 ```
 
-**Application & Forensic Verification:**
+**Application & Verification:**
 The file was reverted to the broken state, and the patch was applied via `patch` to ensure compatibility.
 ```bash
 root@eda402a24f38:/work# cp /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl.orig /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl
@@ -356,8 +356,8 @@ root@eda402a24f38:/work# grep "robust" REAL_TEST.1 | od -t x1c
 ```
 **Observation:** The sequence `5c 2d` (Escaped Minus) appears correctly at bytes 21 and 23.
 
-### 3. Methodology B: Full Source Package Build ("The Maintainer Standard")
-To validate upstream compatibility, I moved beyond system patching and performed a full Release Engineering cycle. This involved rebuilding the `docbook-utils` package from source code, managing the fix via `quilt` (the standard Debian patch manager), and compiling a binary `.deb` installer. This ensures the patch survives the build pipeline and satisfies package linting requirements.
+### 3. Methodology B: Source Package Build ("Maintainer Standard")
+To validate upstream compatibility, I performed a full Release Engineering cycle. This involved rebuilding the `docbook-utils` package from source code, managing the fix via `quilt` (the standard Debian patch manager), and compiling a binary `.deb` installer. This ensures the patch survives the build pipeline and satisfies package linting requirements.
 
 **Log Artifacts:**
 
@@ -377,7 +377,7 @@ root@f3da69ac36c4:/work/docbook-utils-0.6.14# export QUILT_PATCHES=debian/patche
 root@f3da69ac36c4:/work/docbook-utils-0.6.14# quilt new fix-hyphen-encoding.patch
 root@f3da69ac36c4:/work/docbook-utils-0.6.14# quilt add helpers/docbook2man-spec.pl
 
-# Logic Injection (Programmatic modification)
+# Patch Application (Programmatic modification)
 root@f3da69ac36c4:/work/docbook-utils-0.6.14# perl -i -0777 -pe 's/sgml\(\x27<OPTION>\x27, \\&bold_on\);\nsgml\(\x27<\/OPTION>\x27, \\&font_off\);/sgml\(\x27<OPTION>\x27, sub {\n\t&bold_on;\n\tpush_output(\x27string\x27);\n});\nsgml\(\x27<\/OPTION>\x27, sub {\n\tmy \$content = pop_output();\n\t\$content =~ s\/-\/\\\\-\/g;\n\toutput \$content;\n\t&font_off;\n});/s' helpers/docbook2man-spec.pl
 
 root@f3da69ac36c4:/work/docbook-utils-0.6.14# quilt refresh
@@ -418,7 +418,7 @@ root@f3da69ac36c4:/work# grep "robust" CHECKME.1 | od -t x1c
 ```
 **Observation:** The hex dump confirms the sequence `5c 2d` (Escaped Minus) is present in the binary built from the patched source.
 
-### 4. Forensic Audit of Artifacts
+### 4. Binary Output Validation
 I verified the output of the custom-built package using a standard DocBook SGML test case (CHECKME).
 
 **Command:**
