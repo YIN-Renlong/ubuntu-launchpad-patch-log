@@ -124,7 +124,7 @@ grep "checkme" REAL_TEST.1 | od -t x1c
 
 To ensure absolute rigor, a third phase of verification was conducted locally on Apple Silicon (ARM64) hardware. This phase moved beyond simple script patching and simulated the full **Debian Package Maintainer workflow**, ensuring the fix survives the build compilation process and satisfies strict linting standards.
 
-### 1. Test Environment (Clean Room)
+### 1. Test Environment
 All tests were executed within an ephemeral Docker container to guarantee zero environmental contamination. The workload ran natively on ARM64 architecture without emulation.
 
 * **Host Hardware:** MacBook Pro M1 Pro (Apple Silicon)
