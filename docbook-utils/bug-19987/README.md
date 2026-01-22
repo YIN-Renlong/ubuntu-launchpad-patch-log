@@ -277,22 +277,3 @@ C\-
 ## 4. Final Conclusion
 
 The patch has been independently verified on a separate kernel and cloud architecture. The analysis of the `groff` intermediate output confirms that the patch successfully forces the typesetting engine to switch from a "Text Hyphen" context to a "Semantic Minus" context. The fix is robust, binary-exact, and reproducible.
-
----
-
-### How to write in GitHub (Commit Changes Box)
-
-When you are on the GitHub page to commit this file, fill in the boxes like this:
-
-**Commit message:**
-`Docs: Add comprehensive verification report for Ubuntu 24.04 (Oracle Cloud)`
-
-**Extended description:**
-`Added detailed engineering report validating the fix on Ubuntu 24.04 LTS (Kernel 6.8.0-1022-oracle).`
-
-`Includes:`
-`- Raw reproduction commands for manual patch application.`
-`- Binary hex dump verification (od).`
-`- Groff intermediate output analysis (groff -Z) confirming semantic minus glyph usage.`
-
-`Status: Verified / Passed`
