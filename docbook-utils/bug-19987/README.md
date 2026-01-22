@@ -11,7 +11,7 @@
 # Phase 1: Primary Verification & Root Cause Analysis
 
 ## 1. Test Environment
-Verification was performed in a pristine GitHub Codespace environment to establish a baseline.
+I performed verification in a pristine GitHub Codespace environment to establish a baseline.
 
 ```text
 Distributor ID: Ubuntu
@@ -29,7 +29,7 @@ The `docbook2man` utility converts DocBook SGML `<option>` tags into man pages u
 ---
 
 ## 3. Patch Implementation
-The fix modifies the `SGMLSpm` specification file (`helpers/docbook2man-spec.pl`). We intercept the `<OPTION>` element stream, capture the buffer, and apply a regex substitution to enforce proper escaping.
+My fix modifies the `SGMLSpm` specification file (`helpers/docbook2man-spec.pl`). I intercept the `<OPTION>` element stream, capture the buffer, and apply a regex substitution to enforce proper escaping.
 
 **File: `fix.patch` (Content applied):**
 ```perl
@@ -50,10 +50,10 @@ sgml('</OPTION>', sub {
 
 ## 4. Verification Protocol
 
-The following artifacts allow for independent reproduction of the fix.
+I created the following artifacts to allow for independent reproduction of my fix.
 
 ### A. Input Data (`reproduction.sgml`)
-A minimal DocBook RefEntry was created containing the string `--robust-check` to isolate the conversion logic.
+I defined a minimal DocBook RefEntry containing the string `--robust-check` to isolate the conversion logic.
 
 **File Content:**
 ```sgml
@@ -73,7 +73,7 @@ A minimal DocBook RefEntry was created containing the string `--robust-check` to
 ```
 
 ### B. Automated Python Verification
-To verify the fix without ambiguity regarding shell string escaping/expansion, a Python script was utilized to inspect the raw file content.
+To verify the fix without ambiguity regarding shell string escaping/expansion, I utilized a Python script to inspect the raw file content.
 
 **File Content (`verify_fix.py`):**
 ```python
@@ -101,7 +101,7 @@ PASS: Found escaped hyphens in REAL_TEST.1
 ```
 
 ### C. Binary Verification (Hex Dump)
-To validate the file integrity at the byte level, an octal dump was analyzed on the generated artifact `REAL_TEST.1`.
+To validate the file integrity at the byte level, I analyzed an octal dump on the generated artifact `REAL_TEST.1`.
 *   Target string: `\-` (Backslash then Hyphen).
 *   Hex values: `5c` (Backslash), `2d` (Hyphen).
 
@@ -130,7 +130,7 @@ grep "checkme" REAL_TEST.1 | od -t x1c
 
 ## 1. Test Environment
 
-To ensure the fix is architecture-agnostic and not specific to the author's local environment, a secondary validation instance was provisioned on Oracle Cloud.
+To ensure the fix is architecture-agnostic and not specific to my local environment, I provisioned a secondary validation instance on Oracle Cloud.
 
 * **OS:** Ubuntu 24.04.2 LTS
 * **Kernel:** Linux 6.8.0-1022-oracle x86_64
@@ -140,7 +140,7 @@ To ensure the fix is architecture-agnostic and not specific to the author's loca
 
 ## 2. Reproduction Steps (Raw Commands)
 
-The following commands replicate the bug and verify the fix. Note: We utilize direct stream editing (sed/cat) rather than `patch` to ensure application robustness against minor upstream version drift.
+I executed the following commands to replicate the bug and verify the fix. Note: I utilize direct stream editing (sed/cat) rather than `patch` to ensure application robustness against minor upstream version drift.
 
 ### A. Setup and Baseline Failure
 Establishing the test environment and confirming the defect.
@@ -176,7 +176,7 @@ onsgmls reproduction.sgml | sgmlspl ./local-spec.pl > REAL_TEST.1
 ```
 
 ### B. Patch Application (Direct Modification)
-We manually modify the Perl script to inject the fixed logic. This prevents potential patch fuzz/offset errors.
+I manually modified the Perl script to inject the fixed logic. This prevents potential patch fuzz/offset errors.
 
 ```bash
 # 1. Disable the existing (buggy) OPTION handler
@@ -210,7 +210,7 @@ onsgmls reproduction.sgml | sgmlspl ./local-spec.pl > REAL_TEST.1
 
 ## 3. Verification Results
 
-We utilized three distinct methods to verify the fix.
+I utilized three distinct methods to verify the fix.
 
 ### Method 1: Source Logic Check (Python)
 Verifying the literal escape sequence `\-` exists in the file.
@@ -243,7 +243,7 @@ PASS: Found escaped hyphens in REAL_TEST.1
 ```
 
 ### Method 2: Binary Integrity Check (Hex Dump)
-Inspecting the binary octal dump to ensure the sequence is `5c 2d` (Backslash `\` + Hyphen `-`) rather than just `2d`.
+I inspected the binary octal dump to ensure the sequence is `5c 2d` (Backslash `\` + Hyphen `-`) rather than just `2d`.
 
 **Command:**
 ```bash
@@ -258,7 +258,7 @@ grep "robust" REAL_TEST.1 | od -t x1c
 **Observation:** The sequence `5c 2d` appears three times. **PASS**.
 
 ### Method 3: Engine-Level Robustness Check (Groff Intermediate Output)
-To eliminate ambiguity caused by terminal font rendering (UTF-8 vs ASCII), we inspected the `groff` typesetting engine's internal instruction set. We searched for the Semantic Minus Command (`C\-`).
+To eliminate ambiguity caused by terminal font rendering (UTF-8 vs ASCII), I inspected the `groff` typesetting engine's internal instruction set. I searched for the Semantic Minus Command (`C\-`).
 
 **Command:**
 ```bash
@@ -282,10 +282,10 @@ C\-
 **Status:** **PASSED**
 **Operator:** YIN Renlong
 
-To ensure absolute rigor, a third phase of verification was conducted locally on Apple Silicon (ARM64) hardware. This phase simulated the full **Debian Package Maintainer workflow**, ensuring the fix survives the build compilation process and satisfies strict linting standards.
+To ensure absolute rigor, I conducted a third phase of verification locally on Apple Silicon (ARM64) hardware. This phase simulated the full **Debian Package Maintainer workflow**, ensuring the fix survives the build compilation process and satisfies strict linting standards.
 
 ### 1. Test Environment
-Tests were executed within a clean Docker container to guarantee zero environmental contamination. The workload ran natively on ARM64 architecture without emulation.
+I executed tests within a clean Docker container to guarantee zero environmental contamination. The workload ran natively on ARM64 architecture without emulation.
 
 * **Host Hardware:** MacBook Pro M1 Pro (Apple Silicon)
 * **Container Engine:** Docker Desktop 4.32.1 (Engine: 27.0.3)
@@ -335,7 +335,7 @@ The system-generated patch matches the upstream submission logic exactly.
 ```
 
 **Application & Verification:**
-The file was reverted to the broken state, and the patch was applied via `patch` to ensure compatibility.
+I reverted the file to the broken state, and applied the patch via `patch` to ensure compatibility.
 ```bash
 root@eda402a24f38:/work# cp /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl.orig /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl
 root@eda402a24f38:/work# patch /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl < fix.patch
@@ -343,7 +343,7 @@ patching file /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl
 ```
 
 **Binary Output Validation:**
-The docbook2man conversion was executed, and the output was analyzed via octal dump (`od`).
+I executed the docbook2man conversion, and analyzed the output via octal dump (`od`).
 ```bash
 root@eda402a24f38:/work# docbook2man reproduction.sgml > REAL_TEST.1
 root@eda402a24f38:/work# grep "robust" REAL_TEST.1 | od -t x1c
@@ -385,7 +385,7 @@ Refreshed patch debian/patches/fix-hyphen-encoding.patch
 ```
 
 **Compilation & Linting:**
-The package was built using `debuild`. The process automatically triggered `lintian` checks, which completed without fatal errors, confirming the patch structure is valid.
+I built the package using `debuild`. The process automatically triggered `lintian` checks, which completed without fatal errors, confirming the patch structure is valid.
 ```bash
 root@f3da69ac36c4:/work/docbook-utils-0.6.14# debuild -us -uc
 # [Log truncated: dpkg-source and dpkg-buildpackage execution]
@@ -394,7 +394,7 @@ Finished running lintian.
 ```
 
 **Artifact Installation:**
-The custom-compiled `.deb` was installed. Runtime dependencies (jadetex, docbook-xml) were resolved via `apt-get install -f`.
+I installed the custom-compiled `.deb`. Runtime dependencies (jadetex, docbook-xml) were resolved via `apt-get install -f`.
 ```bash
 root@f3da69ac36c4:/work# dpkg -i docbook-utils_0.6.14-4_all.deb
 root@f3da69ac36c4:/work# apt-get install -f -y
@@ -435,8 +435,8 @@ grep "robust" CHECKME.1 | od -t x1c
 * Byte 023-024: `5c 2d` -> `\-` (Escaped Minus)
 
 ### 5. Visual Typographic Verification
-A PostScript (`.ps`) file was generated from the man page using `groff -man -Tps`. Inspection in macOS Preview confirmed that the glyphs rendered are true Minus Signs (longer stroke, distinct from hyphens), confirming the fix propagates correctly through the typesetting engine to the printer driver.
+I generated a PostScript (`.ps`) file from the man page using `groff -man -Tps`. Inspection in macOS Preview confirmed that the glyphs rendered are true Minus Signs (longer stroke, distinct from hyphens), confirming the fix propagates correctly through the typesetting engine to the printer driver.
 
 ---
 ### Final Verdict
-The fix has been verified on x86_64 (Cloud) and ARM64 (Local M1). It successfully passes the Debian Quilt/Debuild packaging pipeline. The binary output is bit-perfect. The patch is ready for immediate merge into the upstream repositories.
+I have verified the fix on x86_64 (Cloud) and ARM64 (Local M1). It successfully passes the Debian Quilt/Debuild packaging pipeline. The binary output is bit-perfect. The patch is ready for immediate merge into the upstream repositories.
