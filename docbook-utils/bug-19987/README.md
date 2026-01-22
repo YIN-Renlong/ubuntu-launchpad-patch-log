@@ -133,7 +133,7 @@ All tests were executed within an ephemeral Docker container to guarantee zero e
 * **Mirror:** Friedrich-Alexander-Universität (FAU) `ubuntu-ports` mirror (High-bandwidth verification).
 
 ### 2. Methodology A: System-Level Forensic Patching (Reverse Generation)
-To eliminate potential whitespace corruption or encoding issues inherent in copy-pasting patch files, we utilized a **Reverse Patch Generation** strategy. Instead of applying an external file, we programmatically modified the system Perl script using regex, generated a system-native diff, reverted the file, and then validated that the generated patch applied cleanly.
+To eliminate potential whitespace corruption or encoding issues inherent in copy-pasting patch files, I utilized a **Reverse Patch Generation** strategy. Instead of applying an external file, I programmatically modified the system Perl script using regex, generated a system-native diff, reverted the file, and then validated that the generated patch applied cleanly.
 
 **Log Artifacts:**
 
@@ -145,7 +145,7 @@ root@eda402a24f38:/work# cp /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl /
 ```
 
 **Logic Injection & Patch Generation:**
-We injected the logic directly into the AST handler and generated a unified diff.
+I injected the logic directly into the AST handler and generated a unified diff.
 ```bash
 root@eda402a24f38:/work# perl -i -0777 -pe 's/sgml\(\x27<OPTION>\x27, \\&bold_on\);\nsgml\(\x27<\/OPTION>\x27, \\&font_off\);/sgml\(\x27<OPTION>\x27, sub {\n\t&bold_on;\n\tpush_output(\x27string\x27);\n});\nsgml\(\x27<\/OPTION>\x27, sub {\n\tmy \$content = pop_output();\n\t\$content =~ s\/-\/\\\\-\/g;\n\toutput \$content;\n\t&font_off;\n});/s' /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl
 root@eda402a24f38:/work# diff -u /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl.orig /usr/share/perl5/sgmlspl-specs/docbook2man-spec.pl > fix.patch
@@ -197,12 +197,12 @@ root@eda402a24f38:/work# grep "robust" REAL_TEST.1 | od -t x1c
 **Observation:** The sequence `5c 2d` (Escaped Minus) appears correctly at bytes 21 and 23.
 
 ### 3. Methodology B: Full Source Package Build ("The Maintainer Standard")
-To validate upstream compatibility, we moved beyond system patching and performed a full Release Engineering cycle. This involved rebuilding the `docbook-utils` package from source code, managing the fix via `quilt` (the standard Debian patch manager), and compiling a binary `.deb` installer. This ensures the patch survives the build pipeline and satisfies package linting requirements.
+To validate upstream compatibility, I moved beyond system patching and performed a full Release Engineering cycle. This involved rebuilding the `docbook-utils` package from source code, managing the fix via `quilt` (the standard Debian patch manager), and compiling a binary `.deb` installer. This ensures the patch survives the build pipeline and satisfies package linting requirements.
 
 **Log Artifacts:**
 
 **Build Environment Initialization:**
-We configured the environment to pull source code (`deb-src`) and utilized the high-bandwidth FAU mirror (ARM64) to resolve heavy build dependencies (TeXLive, Jade, SP).
+I configured the environment to pull source code (`deb-src`) and utilized the high-bandwidth FAU mirror (ARM64) to resolve heavy build dependencies (TeXLive, Jade, SP).
 ```bash
 root@f3da69ac36c4:/work# sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
 root@f3da69ac36c4:/work# apt-get build-dep -y docbook-utils
@@ -210,7 +210,7 @@ root@f3da69ac36c4:/work# apt-get build-dep -y docbook-utils
 ```
 
 **Source Patching via Quilt:**
-Instead of editing files directly, we registered the fix as a formal patch in the package's `debian/patches` series.
+Instead of editing files directly, I registered the fix as a formal patch in the package's `debian/patches` series.
 ```bash
 root@f3da69ac36c4:/work# apt-get source docbook-utils
 root@f3da69ac36c4:/work/docbook-utils-0.6.14# export QUILT_PATCHES=debian/patches
@@ -242,7 +242,7 @@ root@f3da69ac36c4:/work# apt-get install -f -y
 ```
 
 **Output Verification (The "Ghost File"):**
-The docbook2man utility outputs to a file named after the SGML RefEntryTitle (CHECKME.1) rather than STDOUT. We verified the content of this generated file.
+The docbook2man utility outputs to a file named after the SGML RefEntryTitle (CHECKME.1) rather than STDOUT. I verified the content of this generated file.
 ```bash
 root@f3da69ac36c4:/work# docbook2man reproduction.sgml
 root@f3da69ac36c4:/work# ls -l CHECKME.1
@@ -259,7 +259,7 @@ root@f3da69ac36c4:/work# grep "robust" CHECKME.1 | od -t x1c
 **Observation:** The hex dump confirms the sequence `5c 2d` (Escaped Minus) is present in the binary built from the patched source.
 
 ### 4. Forensic Audit of Artifacts
-We verified the output of the custom-built package using a standard DocBook SGML test case (CHECKME).
+I verified the output of the custom-built package using a standard DocBook SGML test case (CHECKME).
 
 **Command:**
 ```bash
