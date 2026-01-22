@@ -1,4 +1,4 @@
-# Engineering Report: docbook-utils Hyphen Encoding Fix
+# Report: docbook-utils Hyphen Encoding Fix
 
 **Bug ID:** [Ubuntu Launchpad #19987](https://bugs.launchpad.net/ubuntu/+source/docbook-utils/+bug/19987)
 **Upstream ID:** [Debian Bug #208967](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=208967)
