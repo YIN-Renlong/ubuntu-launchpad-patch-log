@@ -1,31 +1,30 @@
-# Ubuntu Launchpad Patch Log
+# Ubuntu/Debian Patch Log
 
-This repository serves as a centralized archive of engineering reports, patch files, and independent verification logs for bugs submitted to the [Ubuntu Launchpad](https://launchpad.net/ubuntu) tracking system.
+This repository archives engineering analysis, patches, and verification logs for bugs submitted to the Ubuntu and Debian trackers.
 
-The primary goal is to provide **reproducible proof** for every submitted patch, ensuring that fixes are tested in clean and isolated environments before upstream submission.
+Each entry contains the artifacts required to understand and verify a specific bug fix, ensuring a reproducible and transparent contribution process.
 
 ## Repository Structure
 
-The repository is organized hierarchically by package name and bug ID:
+The repository is organized by package name and the corresponding bug ID:
 
 ```text
 .
 ├── package-name/
 │   └── bug-id/
-│       ├── report.md       # Detailed verification report
-│       ├── fix.patch       # The raw patch file
-│       ├── reproduction/   # Scripts to reproduce the bug (MRE)
-│       └── artifacts/      # Binary dumps or logs proving the fix
+│       ├── README.md           # Engineering analysis and verification log.
+│       └── lp<bug-id>.debdiff  # The sponsorship-ready patch file.
 ```
 
-## Patch Log
+## Contribution Log
 
-| Package | Bug ID | Description | Status | Verification Report |
-| :--- | :--- | :--- | :--- | :--- |
-| `docbook-utils` | [#19987](https://bugs.launchpad.net/ubuntu/+source/docbook-utils/+bug/19987) | **Hyphen Encoding Fix:** Resolves incorrect rendering of options in man pages (Lintian `hyphen-used-as-minus-sign`). | ✅ Verified | [View Report](./docbook-utils/bug-19987/) |
+| Fix Date   | Package       | Bug ID                                                       | Description                                       | Upstream Status | Report                                                       |
+| ---------- | ------------- | ------------------------------------------------------------ | ------------------------------------------------- | --------------- | ------------------------------------------------------------ |
+| 2026-01-27 | acpi-override | [#1892035](https://www.google.com/url?sa=E&q=https%3A%2F%2Fbugs.launchpad.net%2Fubuntu%2F%2Bsource%2Facpi-override%2F%2Bbug%2F1892035) | Fix crash in update-acpi-override with empty dir. | Submitted       | [View Report](https://www.google.com/url?sa=E&q=./acpi-override/bug-1892035/) |
+| 2026-01-22 | docbook-utils | [#19987](https://www.google.com/url?sa=E&q=https%3A%2F%2Fbugs.launchpad.net%2Fubuntu%2F%2Bsource%2Fdocbook-utils%2F%2Bbug%2F19987) | Resolve incorrect hyphen encoding in man pages.   | Submitted       | [View Report](https://www.google.com/url?sa=E&q=./docbook-utils/bug-19987/) |
 
 
-## 🔗 References
+## References
 
 * [Ubuntu Bug Tracker (Launchpad)](https://bugs.launchpad.net/ubuntu)
 * [Debian Bug Tracker](https://www.debian.org/Bugs/)
