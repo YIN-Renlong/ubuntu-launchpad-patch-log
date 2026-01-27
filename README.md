@@ -20,8 +20,8 @@ The repository is organized by package name and the corresponding bug ID:
 
 | Fix Date   | Package       | Bug ID                                                       | Description                                       | Upstream Status | Report                                                       |
 | ---------- | ------------- | ------------------------------------------------------------ | ------------------------------------------------- | --------------- | ------------------------------------------------------------ |
-| 2026-01-27 | acpi-override | [#1892035](https://www.google.com/url?sa=E&q=https%3A%2F%2Fbugs.launchpad.net%2Fubuntu%2F%2Bsource%2Facpi-override%2F%2Bbug%2F1892035) | Fix crash in update-acpi-override with empty dir. | Submitted       | [View Report](https://www.google.com/url?sa=E&q=./acpi-override/bug-1892035/) |
-| 2026-01-22 | docbook-utils | [#19987](https://www.google.com/url?sa=E&q=https%3A%2F%2Fbugs.launchpad.net%2Fubuntu%2F%2Bsource%2Fdocbook-utils%2F%2Bbug%2F19987) | Resolve incorrect hyphen encoding in man pages.   | Submitted       | [View Report](https://www.google.com/url?sa=E&q=./docbook-utils/bug-19987/) |
+| 2026-01-27 | acpi-override | [#1892035](https://bugs.launchpad.net/ubuntu/+source/acpi-override/+bug/1892035) | Fix crash in update-acpi-override with empty dir. | Submitted       | [View Report](https://www.google.com/url?sa=E&q=./acpi-override/bug-1892035/) |
+| 2026-01-22 | docbook-utils | [#19987](https://bugs.launchpad.net/ubuntu/+source/docbook-utils/+bug/19987) | Resolve incorrect hyphen encoding in man pages.   | Submitted       | [View Report](https://www.google.com/url?sa=E&q=./docbook-utils/bug-19987/) |
 
 
 ## References
