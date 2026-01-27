@@ -1,0 +1,32 @@
+Description: Fix update-initramfs crash on empty override directory
+ The acpi-override hook script unconditionally executes a copy command
+ using a wildcard (*). When the /var/lib/acpi-override/ directory is
+ empty (default state), this command fails, causing update-initramfs
+ to exit with an error code.
+ .
+ This patch adds a conditional check to ensure the directory exists
+ and is populated before attempting the copy operation.
+Author: YIN Renlong <info@yin.roma.it>
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/acpi-override/+bug/1892035
+Bug-Debian: https://bugs.debian.org/968604
+Last-Update: 2026-01-27
+Index: acpi-override-0.1+nmu1/acpi-override
+===================================================================
+--- acpi-override-0.1+nmu1.orig/acpi-override
++++ acpi-override-0.1+nmu1/acpi-override
+@@ -15,8 +15,13 @@ esac
+ ACPI="$(mktemp -d "${TMPDIR:-/var/tmp}/initramfs_acpi_XXXXXX")" || exit 1
+ ACPI_CPIO="$(mktemp "${TMPDIR:-/var/tmp}/initramfs_acpi_XXXXXX_cpio")" || exit 1
+ mkdir -p "$ACPI/kernel/firmware/acpi/"
+-cp -a /var/lib/acpi-override/* "$ACPI/kernel/firmware/acpi/" || exit 1
+- ( ( cd "$ACPI" ; find . | cpio -o -H newc ) ) > "$ACPI_CPIO"
++
++# FIX: Only attempt to copy files if the override directory exists and is not empty.
++if [ -d "/var/lib/acpi-override" ] && [ -n "$(ls -A /var/lib/acpi-override/)" ]; then
++    cp -a /var/lib/acpi-override/* "$ACPI/kernel/firmware/acpi/" || exit 1
++fi
++
++( ( cd "$ACPI" ; find . | cpio -o -H newc ) ) > "$ACPI_CPIO"
+ 
+ prepend_earlyinitramfs "$ACPI_CPIO"
+ 
